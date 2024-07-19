@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predictive Maintenance</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Predictive Maintenance for Upstream Equipment</h1>
+        <form id="prediction-form" action="/predict" method="post">
+            <div class="form-group">
+                <label for="temperature">Temperature (°C):</label>
+                <input type="number" id="temperature" name="temperature" step="any" required>
+            </div>
+            <div class="form-group">
+                <label for="pressure">Pressure (kPa):</label>
+                <input type="number" id="pressure" name="pressure" step="any" required>
+            </div>
+            <div class="form-group">
+                <label for="vibration">Vibration (Hz):</label>
+                <input type="number" id="vibration" name="vibration" step="any" required>
+            </div>
+            <button type="submit">Predict</button>
+        </form>
+        
+        <div id="prediction-result">
+            <h2>Prediction Result:</h2>
+            <p id="result-text"></p>
+            <p id="probability-text"></p>
+        </div>
+        
+        <div class="chart-container">
+            <canvas id="sensor-chart"></canvas>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('prediction-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            fetch('/predict', {
+                method: 'POST',
+                body: new FormData(event.target)
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('result-text').innerText = data.prediction;
+                document.getElementById('probability-text').innerText = `Probability: ${(data.probability * 100).toFixed(2)}%`;
+                document.getElementById('prediction-result').style.display = 'block';
+            })
+            .catch(error => console.error('Error:', error));
+        });
+
+        // Example chart setup with Chart.js
+        var ctx = document.getElementById('sensor-chart').getContext('2d');
+        var sensorChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                datasets: [{
+                    label: 'Temperature (°C)',
+                    data: [20, 21, 22, 23, 24, 25],
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1,
+                    fill: false
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
